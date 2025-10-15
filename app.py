@@ -6,7 +6,7 @@ import json
 import altair as alt
 
 # =====================================================================
-# [⭐ 필수 수정 항목] 새로 제공된 GAS 웹 앱 URL로 변경되었습니다.
+# GAS URL (제공된 최신 URL 적용)
 # =====================================================================
 GAS_API_URL = "https://script.google.com/macros/s/AKfycbwfy-Je2eJmhZ6iHH-8lRfziMzdh-nZ5cfbHkgMAdpv9J8R7zAEDGViwGT23j8GxyHt/exec" 
 # =====================================================================
@@ -65,7 +65,6 @@ def submit_form(grade, class_value, num, name, mission, uploaded_file):
             st.cache_data.clear() 
             st.rerun() 
         else:
-            # GAS에서 반환된 구체적인 오류 메시지 출력
             st.error(f"❌ 제출 실패: {result.get('message')}")
             
     except requests.exceptions.RequestException as e:
@@ -74,7 +73,7 @@ def submit_form(grade, class_value, num, name, mission, uploaded_file):
         st.error("❌ API 응답이 유효한 JSON 형식이 아닙니다. GAS 설정을 확인하세요.")
 
 
-# 순위 및 차트 표시 함수
+# 순위 및 차트 표시 함수 (UnboundLocalError 수정)
 def display_rankings_and_charts():
     # ----------------------------------------------------------------------------------
     # 순위 영역
@@ -83,7 +82,7 @@ def display_rankings_and_charts():
     top_students_res = fetch_data('top_students')
     
     if top_students_res["status"] == "success":
-        # fetch_data는 {status, data} 딕셔너리를 반환하므로, data 키를 사용합니다.
+        # 성공 시에만 top_students 변수 선언 및 사용
         top_students = top_students_res["data"]
         
         if not top_students:
@@ -226,7 +225,7 @@ def main():
 
 
 if __name__ == "__main__":
-    # 세션 상태 초기화 (콤보박스 값 유지를 위해 key를 사용)
+    # 세션 상태 초기화 (UnboundLocalError 방지)
     if 'grade' not in st.session_state: st.session_state.grade = ''
     if 'class_value' not in st.session_state: st.session_state.class_value = ''
     if 'num' not in st.session_state: st.session_state.num = ''
