@@ -6,10 +6,13 @@ import json
 import altair as alt
 
 # =====================================================================
-# GAS URL은 이미 올바르게 입력되어 있습니다.
+# [⭐ 필수 수정 항목] 새로 제공된 GAS 웹 앱 URL로 변경되었습니다.
 # =====================================================================
-GAS_API_URL = "https://script.google.com/macros/s/AKfycbxWLgngUokBSaVrdZ--FdT-ndrP4JrcOyk-v3GALlSlhno5ipGopWE-V_phKVPPPD7q/exec" 
+GAS_API_URL = "https://script.google.com/macros/s/AKfycbzBBVL_ggf9mC2DZ9arB-sKqwCx3NSByvyDO8KXpYTvt1MRHwlChm0wgSPEN2wZ9uN4/exec" 
 # =====================================================================
+
+# 이미지 URL (로딩 속도 개선을 위해 이전 이미지 주소를 유지합니다.)
+IMAGE_URL = "https://i.imgur.com/1p9X2fB.png" 
 
 # 데이터 조회 (GET 요청) - 캐싱으로 성능 최적화
 @st.cache_data(ttl=300) 
@@ -79,7 +82,7 @@ def display_rankings_and_charts():
     top_students_res = fetch_data('top_students')
     
     if top_students_res["status"] == "success":
-        top_students = top_students_res["data"]
+        top_students = top_students["data"]
         
         if not top_students:
             st.info("🚀 아직 참여한 학생이 없습니다. 첫 번째 주인공이 되어보세요!")
@@ -132,20 +135,16 @@ def display_rankings_and_charts():
 
 # Streamlit 메인 함수
 def main():
-    # 레이아웃을 wide로 설정
     st.set_page_config(page_title="코딩 파티 제출 (Streamlit)", layout="wide") 
     
     # ----------------------------------------------------
-    # 화면 분할: 좌측에 이미지만 (2), 우측에 모든 콘텐츠 (3) - 참고 UI에 맞춰 이미지 공간 확대
+    # 화면 분할: 좌측에 이미지만 (2), 우측에 모든 콘텐츠 (3)
     # ----------------------------------------------------
-    # col_image는 이미지에만 집중하고, col_content는 폼과 모든 텍스트 요소를 포함하도록 구성
     col_image, col_content = st.columns([2, 3]) 
     
-    # [1] 좌측 열: 배경 이미지 (참고 UI에 맞춰 이미지 크기가 커 보이도록 비율 조정 및 use_container_width 사용)
+    # [1] 좌측 열: 배경 이미지
     with col_image:
-        # use_column_width를 use_container_width로 변경하여 경고 제거
-        st.image("https://i.imgur.com/LBRnOPg.png", use_container_width=True)
-        # 이미지 하단에 공간을 주기 위한 마크다운
+        st.image(IMAGE_URL, use_container_width=True) 
         st.markdown("<div style='height: 20px;'></div>", unsafe_allow_html=True) 
         
     # [2] 우측 열: 모든 콘텐츠 (제목, 폼, 순위, 차트)
@@ -160,26 +159,27 @@ def main():
         st.header("🎉 미션 결과 제출하기")
         with st.form("mission_form", clear_on_submit=True):
             st.markdown("### 학생 정보")
-            # 폼 내부의 학생 정보 영역을 4개로 분할 (학년, 반, 번호, 이름)
+            # 학년, 반, 번호, 이름을 4개 열로 분할
             col1, col2, col3, col4 = st.columns(4) 
             
             with col1:
-                grade = st.selectbox("학년", options=[''] + [str(i) for i in range(1, 7)], label_visibility="collapsed")
+                st.selectbox("학년", options=[''] + [str(i) for i in range(1, 7)], label_visibility="collapsed", key='grade')
             
+            # 학년 선택에 따른 반 옵션 동적 설정 (Session State 이용)
+            grade = st.session_state.grade
             class_options_map = {'1': 6, '2': 8, '3': 9, '4': 11, '5': 10, '6': 10}
             max_class = class_options_map.get(grade, 10) if grade else 10
             
             with col2:
-                class_value = st.selectbox("반", options=[''] + [str(i) for i in range(1, max_class + 1)], label_visibility="collapsed")
+                st.selectbox("반", options=[''] + [str(i) for i in range(1, max_class + 1)], label_visibility="collapsed", key='class_value')
                 
             with col3:
-                num = st.selectbox("번호", options=[''] + [str(i) for i in range(1, 31)], label_visibility="collapsed")
+                st.selectbox("번호", options=[''] + [str(i) for i in range(1, 31)], label_visibility="collapsed", key='num')
             
             with col4:
-                # 이름을 가장 우측에 배치
-                name = st.text_input("이름", placeholder="이름", label_visibility="collapsed")
+                st.text_input("이름", placeholder="이름", label_visibility="collapsed", key='name')
             
-            st.markdown("---") # 구분선
+            st.markdown("---") 
             
             st.markdown("### 참여 미션")
             mission_options = [''] + [
@@ -194,9 +194,9 @@ def main():
                 '모모의 신비한 AI상점', '도와줘! 펭카페', '체셔의 퀴즈', '펫 키우기', '알고리즘 온라인저지', 
                 'CT 잠재력 테스트', '코드 아케이드', '매직 핑거', 'AI 탐험대'
             ]
-            mission = st.selectbox("참여한 코딩파티 미션을 선택하세요", options=mission_options, label_visibility="collapsed")
+            st.selectbox("참여한 코딩파티 미션을 선택하세요", options=mission_options, label_visibility="collapsed", key='mission')
             
-            st.markdown("---") # 구분선
+            st.markdown("---") 
 
             st.markdown("### 수료증 또는 활동 캡처 사진 제출")
             uploaded_file = st.file_uploader("📷 클릭 또는 파일을 드래그하여 업로드", type=['png', 'jpg', 'jpeg'], label_visibility="collapsed")
@@ -204,10 +204,17 @@ def main():
             submitted = st.form_submit_button("🎉 참여 완료하기", use_container_width=True)
             
             if submitted:
-                if not all([grade, class_value, num, name, mission, uploaded_file]):
+                # 폼에서 입력된 값들을 세션 상태에서 가져옴
+                grade_val = st.session_state.grade
+                class_val = st.session_state.class_value
+                num_val = st.session_state.num
+                name_val = st.session_state.name
+                mission_val = st.session_state.mission
+
+                if not all([grade_val, class_val, num_val, name_val, mission_val, uploaded_file]):
                     st.error("모든 항목을 입력하고 파일을 첨부해주세요.")
                 else:
-                    submit_form(grade, class_value, num, name, mission, uploaded_file)
+                    submit_form(grade_val, class_val, num_val, name_val, mission_val, uploaded_file)
         
         st.markdown("---")
         
@@ -217,4 +224,11 @@ def main():
 
 
 if __name__ == "__main__":
+    # 세션 상태 초기화 (콤보박스 값 유지를 위해 key를 사용)
+    if 'grade' not in st.session_state: st.session_state.grade = ''
+    if 'class_value' not in st.session_state: st.session_state.class_value = ''
+    if 'num' not in st.session_state: st.session_state.num = ''
+    if 'name' not in st.session_state: st.session_state.name = ''
+    if 'mission' not in st.session_state: st.session_state.mission = ''
+    
     main()
