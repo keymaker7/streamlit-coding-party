@@ -8,7 +8,7 @@ import altair as alt
 # =====================================================================
 # [⭐ 필수 수정 항목] 새로 제공된 GAS 웹 앱 URL로 변경되었습니다.
 # =====================================================================
-GAS_API_URL = "https://script.google.com/macros/s/AKfycbzBBVL_ggf9mC2DZ9arB-sKqwCx3NSByvyDO8KXpYTvt1MRHwlChm0wgSPEN2wZ9uN4/exec" 
+GAS_API_URL = "https://script.google.com/macros/s/AKfycbwfy-Je2eJmhZ6iHH-8lRfziMzdh-nZ5cfbHkgMAdpv9J8R7zAEDGViwGT23j8GxyHt/exec" 
 # =====================================================================
 
 # 이미지 URL (로딩 속도 개선을 위해 이전 이미지 주소를 유지합니다.)
@@ -65,6 +65,7 @@ def submit_form(grade, class_value, num, name, mission, uploaded_file):
             st.cache_data.clear() 
             st.rerun() 
         else:
+            # GAS에서 반환된 구체적인 오류 메시지 출력
             st.error(f"❌ 제출 실패: {result.get('message')}")
             
     except requests.exceptions.RequestException as e:
@@ -82,7 +83,8 @@ def display_rankings_and_charts():
     top_students_res = fetch_data('top_students')
     
     if top_students_res["status"] == "success":
-        top_students = top_students["data"]
+        # fetch_data는 {status, data} 딕셔너리를 반환하므로, data 키를 사용합니다.
+        top_students = top_students_res["data"]
         
         if not top_students:
             st.info("🚀 아직 참여한 학생이 없습니다. 첫 번째 주인공이 되어보세요!")
